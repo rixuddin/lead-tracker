@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personal Lead Tracker</title>
+  <style>
+    :root{
+      --bg:#f5f6fa; --card:#fff; --ink:#111827; --muted:#6b7280;
+      --line:#e5e7eb; --brand:#111827; --soft:#eef2f7;
+      --danger:#b91c1c; --ok:#16a34a; --warn:#f59e0b; --bad:#ef4444;
+      --r:16px;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink)}
+    header{
+      position:sticky;top:0;z-index:10;
+      background:var(--brand);color:#fff;padding:12px 14px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px
+    }
+    header .t{font-weight:900;font-size:15px}
+    header .s{font-size:12px;opacity:.85;margin-top:2px}
+    header .badge{
+      min-width:34px;height:26px;padding:0 10px;border-radius:999px;
+      background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;
+      font-weight:900;font-size:12px
+    }
+    main{padding:12px;max-width:980px;margin:0 auto}
+    .grid{display:grid;gap:12px;grid-template-columns:1fr}
+    @media(min-width:920px){.grid{grid-template-columns:420px 1fr}}
+    .card{
+      background:var(--card);border:1px solid var(--line);
+      border-radius:var(--r);box-shadow:0 10px 26px rgba(0,0,0,.06);
+      padding:12px
+    }
+
+    .tabs{display:flex;gap:10px;margin-bottom:12px}
+    .tab{
+      flex:1;border:1px solid var(--line);background:#fff;border-radius:999px;
+      padding:10px 12px;font-weight:900;font-size:13px;cursor:pointer;text-align:center
+    }
+    .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+    h2{margin:0 0 10px;font-size:13px}
+    label{display:block;margin:10px 0 6px;font-size:12px;font-weight:900}
+    input,select,textarea{
+      width:100%;padding:10px;border-radius:14px;border:1px solid #dbe3ef;
+      font-size:14px;background:#fff
+    }
+    textarea{min-height:70px;resize:vertical}
+    .row{display:grid;gap:10px;grid-template-columns:1fr}
+    @media(min-width:520px){.row.two{grid-template-columns:1fr 1fr}}
+
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{
+      border:0;border-radius:14px;padding:10px 12px;
+      font-weight:900;font-size:13px;cursor:pointer
+    }
+    .primary{background:var(--brand);color:#fff}
+    .secondary{background:var(--soft);color:var(--ink)}
+    .danger{background:var(--danger);color:#fff}
+    .small{padding:8px 10px;border-radius:999px;font-size:12px}
+
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .toolbar .right{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .hint{margin-top:8px;font-size:12px;color:var(--muted)}
+
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .pill{
+      border:1px solid var(--line);background:#fff;border-radius:999px;
+      padding:8px 10px;font-weight:900;font-size:12px;cursor:pointer
+    }
+    .pill.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+    .list{display:grid;gap:10px;margin-top:10px}
+    .item{border:1px solid var(--line);border-radius:16px;padding:10px;background:#fff}
+    .top{display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+    .name{font-weight:950;font-size:15px;line-height:1.15}
+    .date{font-size:12px;color:var(--muted);white-space:nowrap}
+    .mini{font-size:12px;color:var(--muted);margin-top:2px}
+    .meta{margin-top:6px;display:grid;gap:4px;font-size:13px}
+    .tag{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;font-weight:900;font-size:12px;width:max-content
+    }
+    .tag.ok{background:#dcfce7;color:#14532d}
+    .tag.warn{background:#fef3c7;color:#7c2d12}
+    .tag.bad{background:#fee2e2;color:#7f1d1d}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    a.action{
+      text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+      padding:8px 10px;border-radius:999px;background:var(--soft);
+      color:var(--ink);font-weight:900;font-size:12px
+    }
+    a.action.danger{background:#fee2e2;color:#7f1d1d}
+
+    .empty{font-size:13px;color:var(--muted);padding:10px 2px}
+    .divider{height:1px;background:var(--line);margin:10px 0}
+
+    /* Simple toast */
+    #toast{
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+      background:#111827;color:#fff;padding:10px 14px;border-radius:999px;
+      font-weight:900;font-size:13px;opacity:0;pointer-events:none;
+      transition:opacity .18s ease;
+      z-index:999;
+    }
+    #toast.show{opacity:1}
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="t">Personal Lead Tracker</div>
+    <div class="s" id="hdrSub">Leads • Week</div>
+  </div>
+  <div class="badge" id="hdrCount">0</div>
+</header>
+
+<main>
+  <div class="grid">
+    <section class="card">
+      <div class="tabs">
+        <button class="tab active" id="tabLeads" type="button" onclick="switchMode('leads')">Leads</button>
+        <button class="tab" id="tabCustomers" type="button" onclick="switchMode('customers')">Customers</button>
+      </div>
+
+      <div id="formLeads">
+        <h2>New Lead</h2>
+
+        <label>Name *</label>
+        <input id="l_name" placeholder="Sarah Murphy" autocomplete="name">
+
+        <div class="row two">
+          <div>
+            <label>Phone *</label>
+            <input id="l_phone" placeholder="709-555-0123" inputmode="tel" autocomplete="tel">
+          </div>
+          <div>
+            <label>Provider</label>
+            <input id="l_provider" placeholder="Bell / Telus / Rogers">
+          </div>
+        </div>
+
+        <label>Plan / Price</label>
+        <input id="l_plan" placeholder="60GB / $75 / device balance?">
+
+        <div class="row two">
+          <div>
+            <label>Follow-up method</label>
+            <select id="l_follow">
+              <option>Text</option><option>Call</option><option>Email</option><option>No Preference</option>
+            </select>
+          </div>
+          <div>
+            <label>Follow-up timing</label>
+            <select id="l_when">
+              <option>Soon</option><option>1 Week</option><option>2 Weeks</option><option>1 Month</option><option>2 Months</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Notes</label>
+        <textarea id="l_notes" placeholder="Upgrade date? Budget? Why no close?"></textarea>
+
+        <div class="btns">
+          <button class="primary" type="button" onclick="saveLead()">Save Lead</button>
+          <button class="secondary" type="button" onclick="clearLead()">Clear</button>
+        </div>
+      </div>
+
+      <div id="formCustomers" style="display:none;">
+        <h2>New Customer (future follow-up)</h2>
+
+        <label>Name *</label>
+        <input id="c_name" placeholder="Client name" autocomplete="name">
+
+        <div class="row two">
+          <div>
+            <label>Phone *</label>
+            <input id="c_phone" placeholder="709-555-0123" inputmode="tel" autocomplete="tel">
+          </div>
+          <div>
+            <label>Provider</label>
+            <input id="c_provider" placeholder="Bell / Telus / Rogers">
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>Purchase date *</label>
+            <input id="c_purchase" type="date" onchange="updateCalc()" />
+          </div>
+          <div>
+            <label>Term</label>
+            <select id="c_term" onchange="updateCalc()">
+              <option value="12">12 months</option>
+              <option value="24" selected>24 months</option>
+              <option value="36">36 months</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label>Reminder notice</label>
+            <select id="c_notice" onchange="updateCalc()">
+              <option value="1">1 month before</option>
+              <option value="2" selected>2 months before</option>
+              <option value="3">3 months before</option>
+            </select>
+          </div>
+          <div>
+            <label>Calculated</label>
+            <input id="c_calc" disabled value="Pick a purchase date">
+          </div>
+        </div>
+
+        <label>What they bought</label>
+        <input id="c_bought" placeholder="Device + plan (optional)">
+
+        <label>Notes</label>
+        <textarea id="c_notes" placeholder="Anything to remember for next upgrade."></textarea>
+
+        <div class="btns">
+          <button class="primary" type="button" onclick="saveCustomer()">Save Customer</button>
+          <button class="secondary" type="button" onclick="clearCustomer()">Clear</button>
+        </div>
+
+        <div class="hint">Reminder date = when you should reach out (ex: 2 months before eligibility).</div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="hint">Auto-saves on this device. Email Export opens your email app.</div>
+    </section>
+
+    <section class="card">
+      <div class="toolbar">
+        <h2 style="margin:0" id="listTitle">Leads</h2>
+        <div class="right">
+          <input id="search" placeholder="Search..." style="max-width:220px" oninput="setSearch(this.value)">
+          <button class="secondary small" type="button" onclick="emailExport()">Email Export</button>
+          <button class="danger small" type="button" onclick="wipeTab()">Wipe Tab</button>
+        </div>
+      </div>
+
+      <div class="filters">
+        <button class="pill active" id="f_week" type="button" onclick="setRange('week')">Week</button>
+        <button class="pill" id="f_month" type="button" onclick="setRange('month')">Month</button>
+        <button class="pill" id="f_year" type="button" onclick="setRange('year')">Year</button>
+        <button class="pill" id="f_all" type="button" onclick="setRange('all')">All</button>
+      </div>
+
+      <div class="hint" id="rangeHint"></div>
+      <div class="list" id="list"></div>
+    </section>
+  </div>
+</main>
+
+<div id="toast">Saved ✅</div>
+
+<script>
+  // If your phone is opening the file in a "viewer" that blocks storage/scripts,
+  // this app will feel broken. Open the .html file specifically in Chrome.
+
+  const $ = (id)=>document.getElementById(id);
+
+  const KEY_LEADS = "plt_leads_v4";
+  const KEY_CUST  = "plt_customers_v4";
+
+  let mode = "leads";
+  let range = "week";
+  let q = "";
+
+  function toast(msg="Saved ✅"){
+    const t=$("toast");
+    t.textContent=msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 1200);
+  }
+
+  function load(key){ try{return JSON.parse(localStorage.getItem(key)||"[]")}catch(e){return[]} }
+  function save(key,arr){ localStorage.setItem(key, JSON.stringify(arr)); }
+
+  let leads = load(KEY_LEADS);
+  let cust  = load(KEY_CUST);
+
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function fmt(ts){ const d=new Date(ts); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+
+  function isoWeekYear(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return { isoYear: d.getUTCFullYear(), isoWeek: weekNo };
+  }
+
+  function tagTime(obj){
+    const d = new Date(obj.createdAt);
+    const { isoYear, isoWeek } = isoWeekYear(d);
+    obj.year = String(d.getFullYear());
+    obj.month = `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
+    obj.week = `${isoYear}-W${pad2(isoWeek)}`;
+    return obj;
+  }
+
+  function activeArr(){ return mode==="leads"?leads:cust; }
+  function setActiveArr(arr){
+    if(mode==="leads"){ leads=arr; save(KEY_LEADS, leads); }
+    else{ cust=arr; save(KEY_CUST, cust); }
+  }
+
+  function currentKey(){
+    const now = new Date();
+    const { isoYear, isoWeek } = isoWeekYear(now);
+    if(range==="week") return `${isoYear}-W${pad2(isoWeek)}`;
+    if(range==="month") return `${now.getFullYear()}-${pad2(now.getMonth()+1)}`;
+    if(range==="year") return `${now.getFullYear()}`;
+    return null;
+  }
+
+  function visible(){
+    let arr=[...activeArr()].sort((a,b)=>b.createdAt-a.createdAt);
+    const key=currentKey();
+    if(range!=="all" && key) arr = arr.filter(x=>x[range]===key);
+    if(q.trim()){
+      const s=q.trim().toLowerCase();
+      arr = arr.filter(x =>
+        (x.name||"").toLowerCase().includes(s) ||
+        (x.phone||"").toLowerCase().includes(s) ||
+        (x.provider||"").toLowerCase().includes(s) ||
+        (x.plan||"").toLowerCase().includes(s) ||
+        (x.bought||"").toLowerCase().includes(s) ||
+        (x.notes||"").toLowerCase().includes(s)
+      );
+    }
+    return arr;
+  }
+
+  function telFromPhone(raw){ return String(raw||"").replace(/[^\d+]/g,""); }
+  function safe(s){ return String(s||"").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
+  function addMonths(dateObj, months){
+    const d=new Date(dateObj.getTime());
+    const day=d.getDate();
+    d.setMonth(d.getMonth()+months);
+    if(d.getDate()<day) d.setDate(0);
+    return d;
+  }
+  function daysBetween(a,b){ return Math.floor((b-a)/86400000); }
+  function dueTag(reminderTs){
+    const now=new Date(); const due=new Date(reminderTs);
+    const diff=daysBetween(now,due);
+    if(diff<0) return {cls:"bad", txt:`Overdue ${Math.abs(diff)}d`};
+    if(diff===0) return {cls:"warn", txt:"Due today"};
+    if(diff<=60) return {cls:"warn", txt:`Due in ${diff}d`};
+    return {cls:"ok", txt:`Due ${fmt(reminderTs)}`};
+  }
+
+  function setTabsUI(){
+    $("tabLeads").classList.toggle("active", mode==="leads");
+    $("tabCustomers").classList.toggle("active", mode==="customers");
+    $("formLeads").style.display = mode==="leads" ? "" : "none";
+    $("formCustomers").style.display = mode==="customers" ? "" : "none";
+    $("listTitle").textContent = mode==="leads" ? "Leads" : "Customers";
+  }
+
+  function setFiltersUI(){
+    $("f_week").classList.toggle("active", range==="week");
+    $("f_month").classList.toggle("active", range==="month");
+    $("f_year").classList.toggle("active", range==="year");
+    $("f_all").classList.toggle("active", range==="all");
+    const labelMode = mode==="leads" ? "Leads" : "Customers";
+    const labelRange = range==="week"?"Week":range==="month"?"Month":range==="year"?"Year":"All";
+    $("hdrSub").textContent = `${labelMode} • ${labelRange}`;
+    $("rangeHint").textContent = range==="all" ? "Showing: all records" : `Showing: ${range.toUpperCase()} = ${currentKey()}`;
+  }
+
+  function render(){
+    setTabsUI();
+    setFiltersUI();
+    const arr=visible();
+    $("hdrCount").textContent = arr.length;
+
+    const list=$("list");
+    list.innerHTML="";
+    if(arr.length===0){
+      const d=document.createElement("div");
+      d.className="empty";
+      d.textContent="No records in this view.";
+      list.appendChild(d);
+      return;
+    }
+
+    arr.forEach(x=>{
+      const item=document.createElement("div");
+      item.className="item";
+      const tel=telFromPhone(x.phone);
+
+      if(mode==="leads"){
+        item.innerHTML = `
+          <div class="top">
+            <div>
+              <div class="name">${safe(x.name)}</div>
+              <div class="mini">${safe(x.follow||"Text")} • ${safe(x.when||"Soon")}</div>
+            </div>
+            <div class="date">${fmt(x.createdAt)}</div>
+          </div>
+          <div class="meta">
+            <div><b>Phone:</b> ${safe(x.phone)}</div>
+            ${x.provider?`<div><b>Provider:</b> ${safe(x.provider)}</div>`:""}
+            ${x.plan?`<div><b>Plan:</b> ${safe(x.plan)}</div>`:""}
+            ${x.notes?`<div><b>Notes:</b> ${safe(x.notes)}</div>`:""}
+          </div>
+          <div class="actions">
+            ${tel?`<a class="action" href="tel:${tel}">Call</a>`:""}
+            ${tel?`<a class="action" href="sms:${tel}">Text</a>`:""}
+            <a class="action danger" href="#" onclick="delItem('${x.id}');return false;">Delete</a>
+          </div>
+        `;
+      } else {
+        const tag=dueTag(x.reminderTs);
+        item.innerHTML = `
+          <div class="top">
+            <div>
+              <div class="name">${safe(x.name)}</div>
+              <div class="mini">${safe(x.provider||"")}${x.bought?` • ${safe(x.bought)}`:""}</div>
+            </div>
+            <div class="date">${fmt(x.createdAt)}</div>
+          </div>
+          <div class="meta">
+            <div><b>Phone:</b> ${safe(x.phone)}</div>
+            <div class="tag ${tag.cls}">Reminder: ${safe(fmt(x.reminderTs))} • ${safe(tag.txt)}</div>
+            <div><b>Eligible:</b> ${safe(fmt(x.eligibleTs))}</div>
+            <div><b>Purchase:</b> ${safe(x.purchaseDate)} • <b>Term:</b> ${safe(String(x.termMonths))}m • <b>Notice:</b> ${safe(String(x.noticeMonths))}m</div>
+            ${x.notes?`<div><b>Notes:</b> ${safe(x.notes)}</div>`:""}
+          </div>
+          <div class="actions">
+            ${tel?`<a class="action" href="tel:${tel}">Call</a>`:""}
+            ${tel?`<a class="action" href="sms:${tel}">Text</a>`:""}
+            <a class="action danger" href="#" onclick="delItem('${x.id}');return false;">Delete</a>
+          </div>
+        `;
+      }
+      list.appendChild(item);
+    });
+  }
+
+  // Public functions used by inline buttons
+  window.switchMode = (m)=>{ mode=m; render(); };
+  window.setRange = (r)=>{ range=r; render(); };
+  window.setSearch = (val)=>{ q=val||""; render(); };
+
+  window.delItem = (id)=>{
+    setActiveArr(activeArr().filter(r=>r.id!==id));
+    render();
+  };
+
+  function uid(){
+    return "id_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2);
+  }
+
+  window.saveLead = ()=>{
+    try{
+      const name=$("l_name").value.trim();
+      const phone=$("l_phone").value.trim();
+      if(!name || !phone){ alert("Name and phone required."); return; }
+
+      const rec=tagTime({
+        id:uid(), createdAt:Date.now(),
+        name, phone,
+        provider:$("l_provider").value.trim(),
+        plan:$("l_plan").value.trim(),
+        follow:$("l_follow").value,
+        when:$("l_when").value,
+        notes:$("l_notes").value.trim()
+      });
+
+      leads.push(rec); save(KEY_LEADS, leads);
+      clearLead();
+      toast("Saved Lead ✅");
+      render();
+    }catch(e){
+      alert("Save failed. Make sure you opened the .html in Chrome, not a file previewer.");
+    }
+  };
+
+  window.clearLead = ()=>{
+    $("l_name").value=""; $("l_phone").value=""; $("l_provider").value="";
+    $("l_plan").value=""; $("l_follow").value="Text"; $("l_when").value="Soon"; $("l_notes").value="";
+  };
+
+  window.updateCalc = ()=>{
+    const pd=$("c_purchase").value;
+    if(!pd){ $("c_calc").value="Pick a purchase date"; return; }
+    const term=parseInt($("c_term").value,10)||24;
+    const notice=parseInt($("c_notice").value,10)||2;
+    const purchase=new Date(pd+"T00:00:00");
+    const eligible=addMonths(purchase, term);
+    const reminder=addMonths(eligible, -notice);
+    $("c_calc").value = `Reminder: ${fmt(reminder.getTime())} | Eligible: ${fmt(eligible.getTime())}`;
+  };
+
+  function setDefaultPurchase(){
+    const t=new Date();
+    $("c_purchase").value = `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}`;
+    updateCalc();
+  }
+
+  window.saveCustomer = ()=>{
+    try{
+      const name=$("c_name").value.trim();
+      const phone=$("c_phone").value.trim();
+      const pd=$("c_purchase").value;
+      if(!name || !phone || !pd){ alert("Name, phone, and purchase date required."); return; }
+
+      const term=parseInt($("c_term").value,10)||24;
+      const notice=parseInt($("c_notice").value,10)||2;
+      const purchase=new Date(pd+"T00:00:00");
+      const eligible=addMonths(purchase, term);
+      const reminder=addMonths(eligible, -notice);
+
+      const rec=tagTime({
+        id:uid(), createdAt:Date.now(),
+        name, phone,
+        provider:$("c_provider").value.trim(),
+        purchaseDate: pd,
+        termMont
