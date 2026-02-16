@@ -1,134 +1,731 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lead Tracker</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Lead Tracker</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a31;
+      --card:#0f1f3a;
+      --muted:#9fb0d0;
+      --text:#ffffff;
+      --line:rgba(255,255,255,.10);
+      --tab:#172746;
+      --tabActive:#22355e;
+      --green:#22c55e;
+      --red:#ef4444;
+      --btn:#1f8fff;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 700px at 20% 0%, #14244a 0%, var(--bg) 55%);
+      color:var(--text);
+    }
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background: rgba(3,7,18,.92);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+      padding:14px 16px;
+      font-weight:800;
+      letter-spacing:.2px;
+      text-align:center;
+      font-size:20px;
+    }
+    .wrap{
+      max-width:720px;
+      margin:0 auto;
+      padding:14px;
+    }
+    .tabs{
+      display:flex;
+      gap:10px;
+      background: rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      padding:8px;
+      border-radius:16px;
+      position:sticky;
+      top:56px;
+      z-index:9;
+      backdrop-filter: blur(10px);
+    }
+    .tab{
+      flex:1;
+      padding:12px 10px;
+      text-align:center;
+      border-radius:14px;
+      background: var(--tab);
+      border:1px solid var(--line);
+      cursor:pointer;
+      user-select:none;
+      font-weight:700;
+    }
+    .tab.active{
+      background: var(--tabActive);
+      outline:2px solid rgba(255,255,255,.08);
+    }
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: #0f172a;
-  color: white;
-}
+    .panel{
+      margin-top:14px;
+      background: rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+    }
 
-header {
-  background: #020617;
-  padding: 15px;
-  text-align: center;
-  font-size: 20px;
-  font-weight: bold;
-}
+    h2{
+      margin:0 0 10px;
+      font-size:18px;
+    }
 
-.tabs {
-  display: flex;
-}
+    label{
+      display:block;
+      margin:10px 0 6px;
+      font-size:13px;
+      color:var(--muted);
+      font-weight:700;
+    }
 
-.tab {
-  flex: 1;
-  padding: 15px;
-  text-align: center;
-  background: #1e293b;
-  cursor: pointer;
-}
+    input, select, textarea{
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      font-size:16px;
+      outline:none;
+    }
+    textarea{ min-height:90px; resize:vertical; }
 
-.tab.active {
-  background: #334155;
-}
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .row > div{
+      flex:1 1 220px;
+      min-width:220px;
+    }
 
-.container {
-  padding: 15px;
-}
+    .btnRow{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+    button{
+      border:none;
+      padding:12px 14px;
+      border-radius:14px;
+      font-weight:800;
+      cursor:pointer;
+      font-size:15px;
+    }
+    .primary{ background: var(--green); color:#06210f; flex:1; }
+    .secondary{ background: rgba(255,255,255,.08); color: var(--text); border:1px solid var(--line); }
+    .danger{ background: rgba(239,68,68,.12); color:#fecaca; border:1px solid rgba(239,68,68,.35); }
+    .email{ background: rgba(31,143,255,.18); color:#cfe6ff; border:1px solid rgba(31,143,255,.35); }
 
-input, textarea, select, button {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: none;
-  font-size: 16px;
-}
+    .listHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top:18px;
+      padding-top:12px;
+      border-top:1px solid var(--line);
+    }
+    .small{
+      font-size:12px;
+      color:var(--muted);
+    }
 
-button {
-  background: #22c55e;
-  color: white;
-  font-weight: bold;
-}
-</style>
+    .cards{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:10px;
+    }
+    .card{
+      background: rgba(255,255,255,.05);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+    }
+    .cardTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .title{
+      font-weight:900;
+      font-size:16px;
+      margin:0;
+    }
+    .meta{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+      white-space:pre-line;
+    }
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      max-width: 100%;
+    }
+    .pill.green{
+      background: rgba(34,197,94,.18);
+      border-color: rgba(34,197,94,.35);
+      color:#bff7d4;
+    }
+    .pill.red{
+      background: rgba(239,68,68,.16);
+      border-color: rgba(239,68,68,.35);
+      color:#fecaca;
+    }
+    .cardActions{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+      flex-wrap:wrap;
+    }
+    .cardActions button{
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:13px;
+      font-weight:900;
+    }
+
+    .hidden{ display:none; }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 18px;
+      background: rgba(0,0,0,.75);
+      border:1px solid rgba(255,255,255,.15);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+      z-index: 999;
+    }
+    .toast.show{ opacity: 1; }
+  </style>
 </head>
 
 <body>
+<header>Personal Lead Tracker</header>
 
-<header>Lead Tracker</header>
+<div class="wrap">
+  <div class="tabs" role="tablist">
+    <div class="tab active" id="tabLeads" role="tab" aria-selected="true">Leads</div>
+    <div class="tab" id="tabCustomers" role="tab" aria-selected="false">Customers</div>
+  </div>
 
-<div class="tabs">
-  <div class="tab active" id="leadTabBtn">Leads</div>
-  <div class="tab" id="customerTabBtn">Customers</div>
+  <!-- LEADS -->
+  <div class="panel" id="panelLeads">
+    <h2>New Lead (didn’t buy yet)</h2>
+
+    <div class="row">
+      <div>
+        <label>Name *</label>
+        <input id="leadName" placeholder="Sarah Murphy" />
+      </div>
+      <div>
+        <label>Phone *</label>
+        <input id="leadPhone" inputmode="tel" placeholder="709-555-0123" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Provider</label>
+        <input id="leadProvider" placeholder="Bell / Telus / Rogers" />
+      </div>
+      <div>
+        <label>Plan / Price (optional)</label>
+        <input id="leadPlan" placeholder="60GB / $75 / device balance?" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Follow-up method</label>
+        <select id="leadMethod">
+          <option>Text</option>
+          <option>Call</option>
+          <option>Email</option>
+        </select>
+      </div>
+      <div>
+        <label>Follow-up timing</label>
+        <select id="leadTiming">
+          <option>Soon</option>
+          <option>This week</option>
+          <option>Next week</option>
+          <option>Next month</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Notes</label>
+    <textarea id="leadNotes" placeholder="Upgrade date? Budget? Why no close?"></textarea>
+
+    <div class="btnRow">
+      <button class="primary" id="btnSaveLead">Save Lead</button>
+      <button class="secondary" id="btnClearLead">Clear</button>
+    </div>
+
+    <div class="listHead">
+      <div>
+        <div style="font-weight:900;">Saved Leads</div>
+        <div class="small" id="leadCount">0 saved</div>
+      </div>
+      <div class="btnRow" style="margin:0;">
+        <button class="email" id="btnEmailLeads">Email Export</button>
+        <button class="danger" id="btnWipeLeads">Wipe Leads</button>
+      </div>
+    </div>
+
+    <div class="cards" id="leadCards"></div>
+  </div>
+
+  <!-- CUSTOMERS -->
+  <div class="panel hidden" id="panelCustomers">
+    <h2>New Customer (did buy)</h2>
+
+    <div class="row">
+      <div>
+        <label>Name *</label>
+        <input id="custName" placeholder="Sarah Murphy" />
+      </div>
+      <div>
+        <label>Phone *</label>
+        <input id="custPhone" inputmode="tel" placeholder="709-555-0123" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Provider</label>
+        <input id="custProvider" placeholder="Bell / Telus / Rogers" />
+      </div>
+      <div>
+        <label>Purchase date *</label>
+        <input id="custPurchaseDate" type="date" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Upgrade cycle</label>
+        <select id="custCycle">
+          <option value="24" selected>24 months</option>
+          <option value="36">36 months</option>
+        </select>
+      </div>
+      <div>
+        <label>Reminder notice</label>
+        <select id="custNotice">
+          <option value="60" selected>60 days (2 months)</option>
+          <option value="30">30 days</option>
+          <option value="90">90 days</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Notes</label>
+    <textarea id="custNotes" placeholder="Device, deal notes, anything important for next upgrade."></textarea>
+
+    <div class="btnRow">
+      <button class="primary" id="btnSaveCustomer">Save Customer</button>
+      <button class="secondary" id="btnClearCustomer">Clear</button>
+    </div>
+
+    <div class="listHead">
+      <div>
+        <div style="font-weight:900;">Saved Customers</div>
+        <div class="small" id="custCount">0 saved</div>
+      </div>
+      <div class="btnRow" style="margin:0;">
+        <button class="email" id="btnEmailCustomers">Email Export</button>
+        <button class="danger" id="btnWipeCustomers">Wipe Customers</button>
+      </div>
+    </div>
+
+    <div class="cards" id="custCards"></div>
+  </div>
 </div>
 
-<div class="container">
-
-<div id="leadTab">
-  <h3>New Lead</h3>
-  <input id="leadName" placeholder="Name">
-  <input id="leadPhone" placeholder="Phone">
-  <textarea id="leadNotes" placeholder="Notes"></textarea>
-  <button onclick="saveLead()">Save Lead</button>
-</div>
-
-<div id="customerTab" style="display:none;">
-  <h3>New Customer</h3>
-  <input id="custName" placeholder="Name">
-  <input id="custPhone" placeholder="Phone">
-  <input id="custDate" type="date">
-  <button onclick="saveCustomer()">Save Customer</button>
-</div>
-
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
-let leads = JSON.parse(localStorage.getItem("leads")) || [];
-let customers = JSON.parse(localStorage.getItem("customers")) || [];
+(() => {
+  // --------- Storage keys ----------
+  const KEY_LEADS = "plt_leads_v1";
+  const KEY_CUSTOMERS = "plt_customers_v1";
 
-function saveLead() {
-  const name = document.getElementById("leadName").value;
-  const phone = document.getElementById("leadPhone").value;
-  const notes = document.getElementById("leadNotes").value;
+  // --------- Helpers ----------
+  const $ = (id) => document.getElementById(id);
 
-  leads.push({ name, phone, notes, date: new Date() });
-  localStorage.setItem("leads", JSON.stringify(leads));
+  function toast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 1400);
+  }
 
-  alert("Lead saved");
-}
+  function safeLoad(key){
+    try { return JSON.parse(localStorage.getItem(key)) || []; }
+    catch(e){ return []; }
+  }
+  function safeSave(key, arr){
+    localStorage.setItem(key, JSON.stringify(arr));
+  }
 
-function saveCustomer() {
-  const name = document.getElementById("custName").value;
-  const phone = document.getElementById("custPhone").value;
-  const date = document.getElementById("custDate").value;
+  function fmtDate(d){
+    try {
+      const dt = (d instanceof Date) ? d : new Date(d);
+      if (isNaN(dt.getTime())) return "";
+      return dt.toISOString().slice(0,10);
+    } catch { return ""; }
+  }
 
-  customers.push({ name, phone, date });
-  localStorage.setItem("customers", JSON.stringify(customers));
+  function addMonths(dateStr, months){
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    const day = d.getDate();
+    d.setMonth(d.getMonth() + months);
 
-  alert("Customer saved");
-}
+    // Handle month rollover (e.g. Jan 31 + 1 month)
+    if (d.getDate() !== day) d.setDate(0);
+    return fmtDate(d);
+  }
 
-document.getElementById("leadTabBtn").onclick = () => {
-  document.getElementById("leadTab").style.display = "block";
-  document.getElementById("customerTab").style.display = "none";
-  document.getElementById("leadTabBtn").classList.add("active");
-  document.getElementById("customerTabBtn").classList.remove("active");
-};
+  function subDays(dateStr, days){
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    d.setDate(d.getDate() - days);
+    return fmtDate(d);
+  }
 
-document.getElementById("customerTabBtn").onclick = () => {
-  document.getElementById("leadTab").style.display = "none";
-  document.getElementById("customerTab").style.display = "block";
-  document.getElementById("leadTabBtn").classList.remove("active");
-  document.getElementById("customerTabBtn").classList.add("active");
-};
-</script>
+  function cleanPhone(s){
+    return (s || "").trim();
+  }
 
-</body>
-</html>
+  // --------- State ----------
+  let leads = safeLoad(KEY_LEADS);
+  let customers = safeLoad(KEY_CUSTOMERS);
 
-    
+  // --------- Tabs ----------
+  function setTab(which){
+    const isLeads = which === "leads";
+    $("panelLeads").classList.toggle("hidden", !isLeads);
+    $("panelCustomers").classList.toggle("hidden", isLeads);
+
+    $("tabLeads").classList.toggle("active", isLeads);
+    $("tabCustomers").classList.toggle("active", !isLeads);
+
+    $("tabLeads").setAttribute("aria-selected", isLeads ? "true" : "false");
+    $("tabCustomers").setAttribute("aria-selected", !isLeads ? "true" : "false");
+  }
+
+  $("tabLeads").addEventListener("click", () => setTab("leads"));
+  $("tabCustomers").addEventListener("click", () => setTab("customers"));
+
+  // --------- Render ----------
+  function renderLeads(){
+    $("leadCount").textContent = `${leads.length} saved`;
+    const wrap = $("leadCards");
+    wrap.innerHTML = "";
+
+    // newest first
+    const sorted = [...leads].sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+
+    sorted.forEach((l) => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const top = document.createElement("div");
+      top.className = "cardTop";
+
+      const left = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = l.name || "(no name)";
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent =
+        `Phone: ${l.phone || ""}\n` +
+        (l.provider ? `Provider: ${l.provider}\n` : "") +
+        (l.plan ? `Plan: ${l.plan}\n` : "") +
+        `Follow-up: ${l.method || ""} • ${l.timing || ""}\n` +
+        (l.notes ? `Notes: ${l.notes}` : "");
+
+      left.appendChild(title);
+      left.appendChild(meta);
+
+      const right = document.createElement("div");
+      const pill = document.createElement("div");
+      pill.className = "pill";
+      pill.textContent = `Saved: ${fmtDate(l.createdAt)}`;
+      right.appendChild(pill);
+
+      top.appendChild(left);
+      top.appendChild(right);
+
+      const actions = document.createElement("div");
+      actions.className = "cardActions";
+
+      const del = document.createElement("button");
+      del.className = "danger";
+      del.textContent = "Delete";
+      del.addEventListener("click", () => {
+        leads = leads.filter(x => x.id !== l.id);
+        safeSave(KEY_LEADS, leads);
+        renderLeads();
+        toast("Deleted");
+      });
+
+      actions.appendChild(del);
+
+      card.appendChild(top);
+      card.appendChild(actions);
+      wrap.appendChild(card);
+    });
+  }
+
+  function renderCustomers(){
+    $("custCount").textContent = `${customers.length} saved`;
+    const wrap = $("custCards");
+    wrap.innerHTML = "";
+
+    // Sort by reminder date ascending (soonest first)
+    const sorted = [...customers].sort((a,b) => {
+      const ra = new Date(a.reminderDate || "9999-12-31").getTime();
+      const rb = new Date(b.reminderDate || "9999-12-31").getTime();
+      return ra - rb;
+    });
+
+    const today = fmtDate(new Date());
+
+    sorted.forEach((c) => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const top = document.createElement("div");
+      top.className = "cardTop";
+
+      const left = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = c.name || "(no name)";
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent =
+        `Phone: ${c.phone || ""}\n` +
+        (c.provider ? `Provider: ${c.provider}\n` : "") +
+        `Purchase: ${c.purchaseDate || ""}\n` +
+        `Eligible: ${c.eligibleDate || ""}\n` +
+        `Reminder: ${c.reminderDate || ""}\n` +
+        (c.notes ? `Notes: ${c.notes}` : "");
+
+      left.appendChild(title);
+      left.appendChild(meta);
+
+      const right = document.createElement("div");
+      const pill = document.createElement("div");
+
+      // Visual status: reminder due / coming / later
+      const status =
+        (c.reminderDate && c.reminderDate <= today) ? "DUE" :
+        (c.reminderDate && c.reminderDate <= addMonths(today, 1)) ? "SOON" :
+        "LATER";
+
+      pill.className = "pill " + (status === "DUE" ? "red" : status === "SOON" ? "green" : "");
+      pill.textContent = `Reminder: ${status}`;
+      right.appendChild(pill);
+
+      top.appendChild(left);
+      top.appendChild(right);
+
+      const actions = document.createElement("div");
+      actions.className = "cardActions";
+
+      const del = document.createElement("button");
+      del.className = "danger";
+      del.textContent = "Delete";
+      del.addEventListener("click", () => {
+        customers = customers.filter(x => x.id !== c.id);
+        safeSave(KEY_CUSTOMERS, customers);
+        renderCustomers();
+        toast("Deleted");
+      });
+
+      actions.appendChild(del);
+
+      card.appendChild(top);
+      card.appendChild(actions);
+      wrap.appendChild(card);
+    });
+  }
+
+  // --------- Save lead ----------
+  $("btnSaveLead").addEventListener("click", () => {
+    const name = $("leadName").value.trim();
+    const phone = cleanPhone($("leadPhone").value);
+
+    if (!name || !phone){
+      toast("Name + phone required");
+      return;
+    }
+
+    const lead = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      name,
+      phone,
+      provider: $("leadProvider").value.trim(),
+      plan: $("leadPlan").value.trim(),
+      method: $("leadMethod").value,
+      timing: $("leadTiming").value,
+      notes: $("leadNotes").value.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    leads.push(lead);
+    safeSave(KEY_LEADS, leads);
+    renderLeads();
+    toast("Lead saved");
+  });
+
+  $("btnClearLead").addEventListener("click", () => {
+    $("leadName").value = "";
+    $("leadPhone").value = "";
+    $("leadProvider").value = "";
+    $("leadPlan").value = "";
+    $("leadMethod").value = "Text";
+    $("leadTiming").value = "Soon";
+    $("leadNotes").value = "";
+    toast("Cleared");
+  });
+
+  $("btnWipeLeads").addEventListener("click", () => {
+    if (!confirm("Wipe ALL leads?")) return;
+    leads = [];
+    safeSave(KEY_LEADS, leads);
+    renderLeads();
+    toast("Leads wiped");
+  });
+
+  // --------- Save customer ----------
+  $("btnSaveCustomer").addEventListener("click", () => {
+    const name = $("custName").value.trim();
+    const phone = cleanPhone($("custPhone").value);
+    const purchaseDate = $("custPurchaseDate").value;
+
+    if (!name || !phone || !purchaseDate){
+      toast("Name + phone + purchase date required");
+      return;
+    }
+
+    const cycleMonths = Number($("custCycle").value || 24);
+    const noticeDays = Number($("custNotice").value || 60);
+
+    const eligibleDate = addMonths(purchaseDate, cycleMonths);
+    const reminderDate = subDays(eligibleDate, noticeDays);
+
+    const customer = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+      name,
+      phone,
+      provider: $("custProvider").value.trim(),
+      purchaseDate,
+      eligibleDate,
+      reminderDate,
+      cycleMonths,
+      noticeDays,
+      notes: $("custNotes").value.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    customers.push(customer);
+    safeSave(KEY_CUSTOMERS, customers);
+    renderCustomers();
+    toast("Customer saved");
+  });
+
+  $("btnClearCustomer").addEventListener("click", () => {
+    $("custName").value = "";
+    $("custPhone").value = "";
+    $("custProvider").value = "";
+    $("custPurchaseDate").value = "";
+    $("custCycle").value = "24";
+    $("custNotice").value = "60";
+    $("custNotes").value = "";
+    toast("Cleared");
+  });
+
+  $("btnWipeCustomers").addEventListener("click", () => {
+    if (!confirm("Wipe ALL customers?")) return;
+    customers = [];
+    safeSave(KEY_CUSTOMERS, customers);
+    renderCustomers();
+    toast("Customers wiped");
+  });
+
+  // --------- Email export ----------
+  function emailExport(title, lines){
+    // mailto has size limits; keep it compact
+    const subject = encodeURIComponent(title);
+    const body = encodeURIComponent(lines.join("\n"));
+    const url = `mailto:?subject=${subject}&body=${body}`;
+    window.location.href = url;
+  }
+
+  $("btnEmailLeads").addEventListener("click", () => {
+    if (!leads.length){ toast("No leads to export"); return; }
+    const lines = [];
+    lines.push("LEADS EXPORT");
+    lines.push(`Count: ${leads.length}`);
+    lines.push("----");
+    leads.forEach((l, i) => {
+      lines.push(
+        `${i+1}. ${l.name} | ${l.phone}` +
+        (l.provider ? ` | ${l.provider}` : "") +
+        (l.plan ? ` | ${l.plan}` : "") +
+        ` | ${l.method}/${l.timing}` +
+        ` | Saved: ${fmtDate(l.createdAt)}` +
+        (l.notes ? ` | Notes: ${l.notes}` : "")
+      );
+    });
+    emailExport("Lead Tracker - Leads Export", lines);
+  });
+
+  $("btnEmailCustomers").addEventListener("click", () => {
+    if (!customers.length){ toast("No customers to export"); return; }
+    const lines = [];
+    lines.push("CUSTOMERS EXPORT");
+    lines.push(`Count: ${customers.length}`);
+    lines.push("----");
+    customers.forEach(
